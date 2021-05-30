@@ -2,6 +2,7 @@ let passport = require('passport');
 
 let GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 let env = require('../config/env');
+let UserController = require("../controller/User")
 
 module.exports = function (app) {
 
@@ -19,13 +20,23 @@ module.exports = function (app) {
         callbackURL: "http://localhost:8010/auth/google/callback"
     },
         function (accessToken, refreshToken, profile, done) {
+            let payload = {
+                googleId: profile.id,
+                avatar: profile.photos[0].value,
+                name: profile.name.givenName
+            }
+            UserController.registerOrLoginWithGoogle(payload).then((response) => {
+                return done(err, response);
+            }).catch((response) => {
+                return done(response.message, response);
+            })
             // User.findOrCreate({ googleId: profile.id }, function (err, user) {
             //     return done(err, user);
             // });
-            console.log('accessToken = ', accessToken);
-            console.log('refreshToken = ', refreshToken);
-            console.log('profile = ', profile);
-            done(null, { profile: profile._json });
+            // console.log('accessToken = ', accessToken);
+            // console.log('refreshToken = ', refreshToken);
+            // console.log('profile = ', profile);
+            // done(null, { profile: profile._json });
         }
     ));
 
@@ -35,7 +46,7 @@ module.exports = function (app) {
     app.get('/auth/google/callback',
         passport.authenticate('google', { failureRedirect: '/authfail' }),
         function (req, res) {
-            console.log("slahhhhhhh");
+            console.log(req);
             res.redirect('/');
         });
 }
