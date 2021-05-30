@@ -13,7 +13,7 @@ exports.registerOrLoginWithGoogle = async (payload) => {
             return reject({ status: 'error', message: error.message, code: 422 });
 
         let { googleId } = payload;
-        User.findOne({ googleId }).then((user) => {
+        User.findOne({ googleId }).then(async (user) => {
             if (!user) {
                 User.create(payload).then(async (new_user) => {
                     return resolve({ user: await publify(new_user, public_fields), token: generateJWT(new_user) })

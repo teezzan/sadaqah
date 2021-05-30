@@ -8,6 +8,7 @@ module.exports = function (app) {
 
     app.use(passport.initialize());
     app.use(passport.session());
+
     passport.serializeUser(function (user, done) {
         done(null, user);
     });
@@ -26,9 +27,10 @@ module.exports = function (app) {
                 name: profile.name.givenName
             }
             UserController.registerOrLoginWithGoogle(payload).then((response) => {
-                return done(err, response);
-            }).catch((response) => {
-                return done(response.message, response);
+                console.log(response)
+                return done(null, response);
+            }).catch((err) => {
+                return done(err.message, err);
             })
             // User.findOrCreate({ googleId: profile.id }, function (err, user) {
             //     return done(err, user);
@@ -46,7 +48,6 @@ module.exports = function (app) {
     app.get('/auth/google/callback',
         passport.authenticate('google', { failureRedirect: '/authfail' }),
         function (req, res) {
-            console.log(req);
-            res.redirect('/');
+            res.status(200).json(req.user);
         });
 }
