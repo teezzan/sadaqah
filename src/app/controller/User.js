@@ -1,3 +1,5 @@
+const Joi = require('joi');
+let User = require("../model/User");
 
 exports.greet = async (ctx) => {
     return new Promise(async (resolve, reject) => {
