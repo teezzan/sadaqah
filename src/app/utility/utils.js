@@ -13,6 +13,8 @@ exports.generateJWT = (user) => {
         exp: Math.floor(exp.getTime() / 1000)
     }, env.JWT_SECRET);
 };
+
+
 exports.generateResetJWT = (user) => {
 
     return jwt.sign({

@@ -9,10 +9,7 @@ const CampaignSchema = Schema({
     target: { type: Number, required: true },
     duration: { type: Number, required: true },
     recurring: { type: Boolean, default: false },
-    createdAt: { type: Date, default: new Date() },
-    records: [
-        { type: mongoose.Schema.Types.ObjectId, ref: 'Record' }
-    ]
+    createdAt: { type: Date, default: new Date() }
 
 }, { id: true });
 

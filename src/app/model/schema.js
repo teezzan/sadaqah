@@ -27,4 +27,14 @@ module.exports = {
         }),
 
     },
+    Campaign: {
+        campaignCreation: Joi.object().keys({
+            title: Joi.string().min(1).required(),
+            description: Joi.string().min(1).required(),
+            duration: Joi.number().min(1).required(),
+            recurring: Joi.boolean().required(),
+            assets: Joi.array().items(Joi.string().min(1)).optional()
+        }),
+
+    }
 }
