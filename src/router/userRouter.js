@@ -1,8 +1,8 @@
 var express = require("express");
 const router = express.Router();
 let UserController = require("../app/controller/User");
-let { Authorize } = require('../app/utility/utils');
-
+let { Authorize, Authenticate } = require('../app/utility/utils');
+router.use(Authenticate);
 
 router.get("/", (req, res) => {
     UserController.greet().then((response) => {

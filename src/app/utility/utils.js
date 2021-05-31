@@ -24,9 +24,11 @@ exports.generateResetJWT = (user) => {
 };
 
 exports.resolveToken = async ({ token }) => {
+    console.log(token)
     try {
         const decoded = await new Promise((resolve, reject) => {
             jwt.verify(token, env.JWT_SECRET, (err, decoded) => {
+                console.log(err);
                 if (err)
                     return reject(err);
                 resolve(decoded);
@@ -76,7 +78,7 @@ exports.Authenticate = async (req, res, next) => {
     let { authorization } = req.headers;
     if (authorization) {
         let token = authorization.split(' ')[1]
-        let user = await this.resolveToken({ token })
+        let user = await this.resolveToken({ token });
         if (user) {
             req.ctx = { user, auth: true }
         }
@@ -87,7 +89,7 @@ exports.Authenticate = async (req, res, next) => {
     else {
         req.ctx = { auth: false }
     }
-
+    console.log(req.ctx);
     next()
 }
 

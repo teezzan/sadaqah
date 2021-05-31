@@ -186,7 +186,7 @@ exports.editUser = async (ctx, payload) => {
             if (password)
                 payload.password = bcrypt.hashSync(password, 10);
 
-            User.findByIdAndUpdate(ctx.user.id, payload, { new: true }).then((new_user) => {
+            User.findByIdAndUpdate(ctx.user.id, payload, { new: true }).then(async (new_user) => {
                 resolve({ user: await publify(new_user, public_fields) })
             })
 
@@ -200,7 +200,7 @@ exports.editUser = async (ctx, payload) => {
 exports.me = async (ctx) => {
     return new Promise(async (resolve, reject) => {
 
-        User.findById(ctx.user.id).then((user) => {
+        User.findOne({ $or: [{ _id: ctx.user.id }, { googleId: ctx.user.googleId }] }).then(async (user) => {
 
             if (!user)
                 return reject({ status: 'error', message: "Not Found", code: 404 });
