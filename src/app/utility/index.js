@@ -27,7 +27,6 @@ module.exports = function (app) {
                 name: profile.name.givenName
             }
             UserController.registerOrLoginWithGoogle(payload).then((response) => {
-                console.log(response)
                 return done(null, response);
             }).catch((err) => {
                 return done(err.message, err);

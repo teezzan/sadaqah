@@ -7,7 +7,6 @@ exports.generateJWT = (user) => {
     const today = new Date();
     const exp = new Date(today);
     exp.setDate(today.getDate() + 7);
-
     return jwt.sign({
         id: user.id,
         googleId: user.googleId,

@@ -59,7 +59,7 @@ exports.create = async (payload) => {
 exports.login = async (payload) => {
 
     return new Promise(async (resolve, reject) => {
-        const { error } = schemas.user.login.validate(payload);
+        const { error } = schemas.user.authentication.validate(payload);
 
         if (error !== undefined)
             return reject({ status: 'error', message: error.message, code: 422 });
@@ -73,7 +73,7 @@ exports.login = async (payload) => {
                 const pass_auth = await bcrypt.compare(password, user.password);
                 if (!pass_auth)
                     return reject({ status: 'error', message: "Wrong Password", code: 401 });
-                return resolve({ user: await publify(found, public_fields), token: generateJWT(found) });
+                return resolve({ user: await publify(user, public_fields), token: generateJWT(user) });
             }
         }).catch((err) => {
             return reject({ status: 'error', message: err.message, code: 500 })
