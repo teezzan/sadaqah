@@ -32,13 +32,6 @@ module.exports = function (app) {
             }).catch((err) => {
                 return done(err.message, err);
             })
-            // User.findOrCreate({ googleId: profile.id }, function (err, user) {
-            //     return done(err, user);
-            // });
-            // console.log('accessToken = ', accessToken);
-            // console.log('refreshToken = ', refreshToken);
-            // console.log('profile = ', profile);
-            // done(null, { profile: profile._json });
         }
     ));
 
