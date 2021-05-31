@@ -10,7 +10,7 @@ let public_fields = ["id", "title", "description", "assets", "creator", "target"
 exports.create = async (ctx, payload) => {
 
     return new Promise(async (resolve, reject) => {
-        const { error } = schemas.user.accountCreation.validate(payload);
+        const { error } = schemas.campaign.campaignCreation.validate(payload);
 
         if (error !== undefined)
             return reject({ status: 'error', message: error.message, code: 422 });
@@ -47,11 +47,12 @@ exports.getCampaign = async (ctx, _id) => {
 
     return new Promise(async (resolve, reject) => {
 
-        Campaign.findOne({ user: ctx.user.id, _id }).then((campaign) => {
-            Record.findOne({ campaign: campaign.id }).sort([['createdAt', -1]]).then((record) => {
-                if (record.length !== 0) {
-                    campaign.record = record[0];
-                }
+        Campaign.findOne({ _id }).then((campaign) => {
+            if (!campaign)
+                return reject({ status: 'error', message: "Not Found", code: 404 });
+            Record.findOne({ campaign: campaign.id }).sort([['createdAt', -1]]).limit(1).then((record) => {
+
+                campaign.record = record;
                 return resolve({ campaign: await publify(campaign, public_fields) })
             })
         }).catch((err) => {
@@ -61,10 +62,9 @@ exports.getCampaign = async (ctx, _id) => {
     })
 }
 
-exports.getAllCampaigns = async (ctx) => {
+exports.getAllCampaigns = async () => {
 
     return new Promise(async (resolve, reject) => {
-
         Campaign.find({}).sort([['total', -1]]).then((campaigns) => {
             return resolve({ campaigns })
         }).catch((err) => {
@@ -73,3 +73,93 @@ exports.getAllCampaigns = async (ctx) => {
 
     })
 }
+
+exports.deleteCampaign = async (ctx, _id) => {
+
+    return new Promise(async (resolve, reject) => {
+
+        Campaign.findOneAndDelete({ creator: ctx.user.id, _id }).then((campaign) => {
+            if (!campaign)
+                return reject({ status: 'error', message: "Not Found", code: 404 });
+            Record.findOneAndDelete({ campaign: _id }).then((record) => {
+                return resolve({ status: "Success" });
+            })
+        }).catch((err) => {
+            return reject({ status: 'error', message: err.message, code: 500 })
+        });
+
+    })
+}
+
+exports.editCampaign = async (ctx, payload) => {
+
+    return new Promise(async (resolve, reject) => {
+
+        const { error } = schemas.campaign.campaignCreation.validate(payload);
+
+        if (error !== undefined)
+            return reject({ status: 'error', message: error.message, code: 422 });
+
+        let { id } = payload;
+
+        Campaign.findByIdAndUpdate(id, payload, { new: true }).then(async (campaign) => {
+            if (!campaign)
+                return reject({ status: 'error', message: "Not Found", code: 404 });
+            resolve({ campaign: await publify(campaign, public_fields) });
+        }).catch((err) => {
+            return reject({ status: 'error', message: err.message, code: 500 })
+        });
+
+    })
+}
+
+exports.getAllRecords = async (campaign) => {
+
+    return new Promise(async (resolve, reject) => {
+        Record.find({ campaign }).sort([['createdAt', -1]]).then((records) => {
+            return resolve({ records })
+        }).catch((err) => {
+            return reject({ status: 'error', message: err.message, code: 500 })
+        });
+
+    })
+}
+
+exports.getLatestRecord = async (campaign) => {
+
+    return new Promise(async (resolve, reject) => {
+        Record.find({ campaign }).sort([['createdAt', -1]]).limit(1).then((record) => {
+            return resolve({ record })
+        }).catch((err) => {
+            return reject({ status: 'error', message: err.message, code: 500 })
+        });
+
+    })
+}
+
+exports.createNewRecord = async (ctx, payload) => {
+
+    return new Promise(async (resolve, reject) => {
+        const { error } = schemas.record.recordCreation.validate(payload);
+
+        if (error !== undefined)
+            return reject({ status: 'error', message: error.message, code: 422 });
+
+        let { campaign, duration } = payload;
+
+        Record.create({
+            campaign,
+            deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * duration),
+            createdAt: new Date.now()
+        }).then(() => {
+            return resolve({ status: "Success" });
+        }).catch((err) => {
+            return reject({ status: 'error', message: err.message, code: 500 });
+        });
+
+
+    })
+}
+
+
+
