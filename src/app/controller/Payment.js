@@ -81,22 +81,50 @@ exports.hook = async (req) => {
                 resolve({ status: 'error', message: "Nice Try", code: 401 })
 
             let reference = data.reference;
-            let id = reference.split("==")[0];
-            // let amount = data.amount / 100; //naira-centric
-            let influence = await InfluenceModel.findByIdAndUpdate(id, { new: true }, {
-                $set: {
-                    payment_ref: reference
+            let campaignID = reference.split("==")[0];
+            let user = reference.split("==")[1];
+
+
+            Record.find({ campaign: campaignID }).sort([['createdAt', -1]]).limit(1).then((record) => {
+
+                let contributions = {
+                    amount: data.amount / 100,
+                    date: new Date(),
+                    total_before: record.total,
+                    total_after: record.total + (data.amount / 100)
                 }
-            });
+                if (user !== "null") {
+                    contributions.user = user;
+                }
 
-            try {
-                await publishToQueue(task_queue, JSON.stringify(influence));
-            }
-            catch (err) {
+                Record.findByIdAndUpdate(id, {
+                    $push: {
+                        contributions
+                    },
+                    $set: {
+                        total: contributions.total_after
+                    }
+                }, { new: true }).then(async (new_record) => {
+                    if (user !== "null") {
+                        contributions.record = new_record.id;
+                        contributions.campaign = new_record.campaign;
+                        await User.findByIdAndUpdate(id, {
+                            $push: {
+                                contributions
+                            },
+                            $set: {
+                                total: contributions.total_after
+                            }
+                        }, { new: true });
+                    }
+                    resolve({ status: "Success" });
+
+                }).catch((err) => {
+                    return reject({ status: 'error', message: err.message, code: 500 })
+                });
+            }).catch((err) => {
                 return reject({ status: 'error', message: err.message, code: 500 })
-            }
-
-            return resolve({ status: 200 });
+            });
         }
 
 

@@ -14,7 +14,6 @@ const UserSchema = Schema({
             amount: { type: Number, default: 0 },
             campaign: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign' },
             record: { type: mongoose.Schema.Types.ObjectId, ref: 'Record' },
-            email: { type: String, default: "*************@gmail.com" },
             date: { type: Date, default: new Date() },
             total_before: { type: Number, default: 0 },
             total_after: { type: Number, default: 0 },
