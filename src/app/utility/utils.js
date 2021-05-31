@@ -71,3 +71,32 @@ exports.composePassMail = (payload) => {
     </p>`;
     return mailbody
 }
+
+exports.Authenticate = async (req, res, next) => {
+    let { authorization } = req.headers;
+    if (authorization) {
+        let token = authorization.split(' ')[1]
+        let user = await this.resolveToken({ token })
+        if (user) {
+            req.ctx = { user, auth: true }
+        }
+        else {
+            req.ctx = { auth: false }
+        }
+    }
+    else {
+        req.ctx = { auth: false }
+    }
+
+    next()
+}
+
+exports.Authorize = async (req, res, next) => {
+
+    if (req.ctx.auth == false) {
+        res.status(401).json({ message: "UnAuthorized" })
+        return
+    }
+    console.log("Authorized as ", req.ctx.user.email);
+    next()
+}
