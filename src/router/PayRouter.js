@@ -14,4 +14,14 @@ router.get("/:campaign/:amount", (req, res) => {
     })
 })
 
+router.post("/hook", (req, res) => {
+    console.log("paying");
+
+    PaymentController.hook(req).then((response) => {
+        res.status(200).json(response);
+    }).catch(err => {
+        res.status(err.code).json(err);
+    })
+})
+
 module.exports = router;
