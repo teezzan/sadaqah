@@ -39,10 +39,10 @@ exports.generatePaymentLink = async (ctx, payload) => {
                 } else {
                     ps_payload.email = "*************@gmail.com";
                 }
-                ps_payload.reference = `${campaign.id}==${ctx.user.id}==${Date.now()}`;
+                ps_payload.reference = `${campaign.id}&&${ctx.user.id}&&${Date.now()}`;
             } else {
                 ps_payload.email = "*************@gmail.com";
-                ps_payload.reference = `${campaign.id}==null`;
+                ps_payload.reference = `${campaign.id}&&null&&${Date.now()}`;
             }
             console.log(ps_payload);
 
@@ -95,8 +95,8 @@ exports.hook = async (req) => {
                 resolve({ status: 'error', message: "Nice Try", code: 401 })
 
             let reference = data.reference;
-            let campaignID = reference.split("==")[0];
-            let user = reference.split("==")[1];
+            let campaignID = reference.split("&&")[0];
+            let user = reference.split("&&")[1];
 
 
             Record.find({ campaign: campaignID }).sort([['createdAt', -1]]).limit(1).then((record) => {
@@ -110,7 +110,7 @@ exports.hook = async (req) => {
                 if (user !== "null") {
                     contributions.user = user;
                 }
-
+                console.log("record => ", record)
                 Record.findByIdAndUpdate(id, {
                     $push: {
                         contributions
@@ -119,10 +119,12 @@ exports.hook = async (req) => {
                         total: contributions.total_after
                     }
                 }, { new: true }).then(async (new_record) => {
+                    console.log("new_record => ", new_record)
+
                     if (user !== "null") {
                         contributions.record = new_record.id;
                         contributions.campaign = new_record.campaign;
-                        await User.findByIdAndUpdate(id, {
+                        let u = await User.findByIdAndUpdate(id, {
                             $push: {
                                 contributions
                             },
@@ -130,6 +132,8 @@ exports.hook = async (req) => {
                                 total: contributions.total_after
                             }
                         }, { new: true });
+                        console.log("UUU ", u)
+
                     }
                     resolve({ status: "Success" });
 
