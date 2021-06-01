@@ -40,6 +40,7 @@ exports.generatePaymentLink = async (ctx, payload) => {
                 ps_payload.email = "*************@gmail.com";
                 ps_payload.reference = `${campaign.id}==null`;
             }
+            console.log(ps_payload);
 
             let res = await axios.post(
                 "https://api.paystack.co/transaction/initialize",
