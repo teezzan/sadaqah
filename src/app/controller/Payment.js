@@ -85,7 +85,7 @@ exports.hook = async (req) => {
             var hash = crypto
                 .createHmac(
                     "sha512",
-                    paystack_public_key
+                    env.paystack_public_key
                 )
                 .update(JSON.stringify(req.body))
                 .digest("hex");
