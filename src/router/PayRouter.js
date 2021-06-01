@@ -3,7 +3,6 @@ const router = express.Router();
 let PaymentController = require("../app/controller/Payment");
 let { Authorize, Authenticate } = require('../app/utility/utils');
 router.use(Authenticate);
-let env = require("../app/config/env")
 
 router.get("/:campaign/:amount", (req, res) => {
     console.log("paying");

@@ -35,12 +35,11 @@ exports.generatePaymentLink = async (ctx, payload) => {
             if (ctx.user) {
                 let user = await User.findById(ctx.user.id);
                 ps_payload.email = user.email;
-                ps_payload.reference = `${campaign.id}==${ctx.user.id}`;
+                ps_payload.reference = `${campaign.id}==${ctx.user.id}==${Date.now()}`;
             } else {
                 ps_payload.email = "*************@gmail.com";
                 ps_payload.reference = `${campaign.id}==null`;
             }
-            console.log("tttrrr  ", env.paystack_private_key)
 
             let res = await axios.post(
                 "https://api.paystack.co/transaction/initialize",
@@ -67,7 +66,7 @@ exports.generatePaymentLink = async (ctx, payload) => {
 
 
         }).catch((err) => {
-            return reject({ status: 'error', message: err, code: 500 })
+            return reject({ status: 'error', message: err.message, code: 500 })
         });
 
 
