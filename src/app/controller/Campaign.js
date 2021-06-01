@@ -8,28 +8,29 @@ let public_fields = ["id", "title", "description", "assets", "creator", "target"
 
 
 exports.create = async (ctx, payload) => {
-
+    console.log(payload)
     return new Promise(async (resolve, reject) => {
         const { error } = schemas.campaign.campaignCreation.validate(payload);
 
         if (error !== undefined)
             return reject({ status: 'error', message: error.message, code: 422 });
 
-        let { title, description, recurring, duration, assets } = payload;
+        let { title, description, recurring, duration, assets, target } = payload;
         Campaign.create({
             title,
             description,
             duration,
+            target,
             assets,
             recurring,
             creator: ctx.user.id,
-            createdAt: new Date.now()
+            createdAt: new Date()
         }).then((campaign) => {
             Record.create({
                 campaign: campaign.id,
                 deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * duration),
-                createdAt: new Date.now()
-            }).then(() => {
+                createdAt: new Date()
+            }).then(async () => {
                 return resolve({ campaign: await publify(campaign, public_fields) })
             }).catch((err) => {
                 Campaign.findOneAndDelete({ creator: ctx.user.id, _id: campaign.id }).then(() => {
@@ -50,7 +51,7 @@ exports.getCampaign = async (ctx, _id) => {
         Campaign.findOne({ _id }).then((campaign) => {
             if (!campaign)
                 return reject({ status: 'error', message: "Not Found", code: 404 });
-            Record.findOne({ campaign: campaign.id }).sort([['createdAt', -1]]).limit(1).then((record) => {
+            Record.findOne({ campaign: campaign.id }).sort([['createdAt', -1]]).limit(1).then(async (record) => {
 
                 campaign.record = record;
                 return resolve({ campaign: await publify(campaign, public_fields) })
@@ -77,7 +78,6 @@ exports.getAllCampaigns = async () => {
 exports.deleteCampaign = async (ctx, _id) => {
 
     return new Promise(async (resolve, reject) => {
-
         Campaign.findOneAndDelete({ creator: ctx.user.id, _id }).then((campaign) => {
             if (!campaign)
                 return reject({ status: 'error', message: "Not Found", code: 404 });
@@ -92,10 +92,10 @@ exports.deleteCampaign = async (ctx, _id) => {
 }
 
 exports.editCampaign = async (ctx, payload) => {
-
     return new Promise(async (resolve, reject) => {
 
-        const { error } = schemas.campaign.campaignCreation.validate(payload);
+        console.log(payload)
+        const { error } = schemas.campaign.campaignEdit.validate(payload);
 
         if (error !== undefined)
             return reject({ status: 'error', message: error.message, code: 422 });

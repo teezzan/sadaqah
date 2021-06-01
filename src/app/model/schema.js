@@ -33,11 +33,13 @@ module.exports = {
             description: Joi.string().min(1).required(),
             duration: Joi.number().min(1).required(),
             recurring: Joi.boolean().required(),
-            assets: Joi.array().items(Joi.string().min(1)).optional()
+            assets: Joi.array().items(Joi.string().min(1)).optional(),
+            target: Joi.number().min(1).required()
         }),
         campaignEdit: Joi.object().keys({
             id: Joi.string().min(1).required(),
             title: Joi.string().min(1).optional(),
+            target: Joi.number().min(1).optional(),
             description: Joi.string().min(1).optional(),
             duration: Joi.number().min(1).optional(),
             recurring: Joi.boolean().optional(),

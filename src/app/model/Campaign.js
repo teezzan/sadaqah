@@ -23,5 +23,5 @@ CampaignSchema.set('toJSON', {
     transform: function (doc, ret) { delete ret._id }
 });
 
-const CampaignSchema = mongoose.model("Campaign", CampaignSchema);
-module.exports = UserModel
+const CampaignModel = mongoose.model("Campaign", CampaignSchema);
+module.exports = CampaignModel

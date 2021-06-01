@@ -33,5 +33,5 @@ RecordSchema.set('toJSON', {
     transform: function (doc, ret) { delete ret._id }
 });
 
-const RecordSchema = mongoose.model("Record", RecordSchema);
-module.exports = UserModel
+const RecordModel = mongoose.model("Record", RecordSchema);
+module.exports = RecordModel
