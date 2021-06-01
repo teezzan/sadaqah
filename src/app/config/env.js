@@ -16,7 +16,8 @@ else if (process.env.NODE_ENV == "development") {
         MONGO_URL: process.env.MONGO_URI,
         server: process.env.SERVER || "localhost:8010",
         paystack_private_key: process.env.PAYSTACK_PRIVATE_KEY,
-        paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY
+        paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY,
+        SERVER: process.env.SERVER
     };
 }
 
