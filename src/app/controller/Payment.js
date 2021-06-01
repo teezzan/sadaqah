@@ -39,10 +39,10 @@ exports.generatePaymentLink = async (ctx, payload) => {
                 } else {
                     ps_payload.email = "*************@gmail.com";
                 }
-                ps_payload.reference = `${campaign.id}&&${ctx.user.id}&&${Date.now()}`;
+                ps_payload.reference = `${campaign.id}==${ctx.user.id}==${Date.now()}`;
             } else {
                 ps_payload.email = "*************@gmail.com";
-                ps_payload.reference = `${campaign.id}&&null&&${Date.now()}`;
+                ps_payload.reference = `${campaign.id}==null==${Date.now()}`;
             }
             console.log(ps_payload);
 
@@ -80,7 +80,6 @@ exports.generatePaymentLink = async (ctx, payload) => {
 
 exports.hook = async (req) => {
     return new Promise(async (resolve, reject) => {
-
         if (req.headers["x-paystack-signature"]) {
             var hash = crypto
                 .createHmac(
@@ -95,8 +94,8 @@ exports.hook = async (req) => {
                 resolve({ status: 'error', message: "Nice Try", code: 401 })
 
             let reference = data.reference;
-            let campaignID = reference.split("&&")[0];
-            let user = reference.split("&&")[1];
+            let campaignID = reference.split("==")[0];
+            let user = reference.split("==")[1];
 
 
             Record.find({ campaign: campaignID }).sort([['createdAt', -1]]).limit(1).then((record) => {
@@ -104,14 +103,15 @@ exports.hook = async (req) => {
                 let contributions = {
                     amount: data.amount / 100,
                     date: new Date(),
-                    total_before: record.total,
-                    total_after: record.total + (data.amount / 100)
+                    total_before: record[0].total,
+                    total_after: record[0].total + (data.amount / 100)
                 }
                 if (user !== "null") {
                     contributions.user = user;
                 }
                 console.log("record => ", record)
-                Record.findByIdAndUpdate(id, {
+                console.log(contributions)
+                Record.findByIdAndUpdate(record._id, {
                     $push: {
                         contributions
                     },
@@ -138,6 +138,7 @@ exports.hook = async (req) => {
                     resolve({ status: "Success" });
 
                 }).catch((err) => {
+                    console.log(err)
                     return reject({ status: 'error', message: err.message, code: 500 })
                 });
             }).catch((err) => {

@@ -4,7 +4,7 @@ let UserRoute = require('./router/userRouter');
 let CampaignRoute = require('./router/CampaignRouter');
 let PayRoute = require('./router/PayRouter');
 let cors = require('cors');
-let db = require("./app/config/db");
+let db = require("./app/config/db");//https://sqbe.herokuapp.com/pay/hook
 
 let port = process.env.PORT || 8010;
 global.__root = __dirname + "/";
