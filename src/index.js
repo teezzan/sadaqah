@@ -2,6 +2,7 @@ let express = require("express");
 let app = express();
 let UserRoute = require('./router/userRouter');
 let CampaignRoute = require('./router/CampaignRouter');
+let PayRoute = require('./router/PayRouter');
 let cors = require('cors');
 let db = require("./app/config/db");
 
@@ -15,5 +16,6 @@ app.use(express.json());
 require('./app/utility/index')(app);
 app.use('/user', UserRoute);
 app.use('/campaign', CampaignRoute);
+app.use('/pay', PayRoute);
 app.listen(port, () => console.log("App listening at %s", port));
 console.log("Server is listening");

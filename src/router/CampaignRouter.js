@@ -2,6 +2,7 @@ var express = require("express");
 const router = express.Router();
 let UserController = require("../app/controller/User");
 let CampaignController = require("../app/controller/Campaign");
+let PaymentController = require("../app/controller/Payment");
 let { Authorize, Authenticate } = require('../app/utility/utils');
 router.use(Authenticate);
 
@@ -12,7 +13,7 @@ router.get("/", (req, res) => {
         res.status(err.code).json(err);
     })
 })
-router.post("/create", (req, res) => {
+router.post("/create", Authorize, (req, res) => {
 
     CampaignController.create(req.ctx, req.body).then((response) => {
         res.status(200).json(response);
@@ -30,7 +31,7 @@ router.get("/:campaign", (req, res) => {
     })
 })
 
-router.delete("/:campaign", (req, res) => {
+router.delete("/:campaign", Authorize, (req, res) => {
 
     CampaignController.deleteCampaign(req.ctx, req.params.campaign).then((response) => {
         res.status(201).json(response);
@@ -38,9 +39,16 @@ router.delete("/:campaign", (req, res) => {
         res.status(err.code).json(err);
     })
 })
-router.post("/:id", (req, res) => {
+router.post("/:id", Authorize, (req, res) => {
 
     CampaignController.editCampaign(req.ctx, { ...req.body, id: req.params.id }).then((response) => {
+        res.status(200).json(response);
+    }).catch(err => {
+        res.status(err.code).json(err);
+    })
+})
+router.get("/pay/:id", (req, res) => {
+    CampaignController.getAllCampaigns().then((response) => {
         res.status(200).json(response);
     }).catch(err => {
         res.status(err.code).json(err);

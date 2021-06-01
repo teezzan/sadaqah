@@ -4,19 +4,27 @@ let Campaign = require("../model/Campaign");
 let Record = require("../model/Record");
 let schemas = require('../model/schema');
 let crypto = require('crypto');
+let env = require("../config/env")
 
 
 exports.generatePaymentLink = async (ctx, payload) => {
+
     return new Promise(async (resolve, reject) => {
+
+        payload.amount = Number(payload.amount)
+        if (payload.amount < 0) {
+            return reject({
+                status: "error", message: "Payment Error", code: 422
+            });
+        }
 
         const { error } = schemas.payment.paymentCreation.validate(payload);
 
         if (error !== undefined)
             return reject({ status: 'error', message: error.message, code: 422 });
 
-        let { id } = payload;
-
-        Campaign.findOne({ _id: id }).then((campaign) => {
+        let { campaign } = payload;
+        Campaign.findById(campaign).then(async (campaign) => {
             if (!campaign)
                 return reject({ status: 'error', message: "Not Found", code: 404 });
             let ps_payload = {
@@ -25,12 +33,14 @@ exports.generatePaymentLink = async (ctx, payload) => {
             };
 
             if (ctx.user) {
-                ps_payload.email = ctx.user.email;
+                let user = await User.findById(ctx.user.id);
+                ps_payload.email = user.email;
                 ps_payload.reference = `${campaign.id}==${ctx.user.id}`;
             } else {
                 ps_payload.email = "*************@gmail.com";
                 ps_payload.reference = `${campaign.id}==null`;
             }
+            console.log("tttrrr  ", env.paystack_private_key)
 
             let res = await axios.post(
                 "https://api.paystack.co/transaction/initialize",
@@ -57,7 +67,7 @@ exports.generatePaymentLink = async (ctx, payload) => {
 
 
         }).catch((err) => {
-            return reject({ status: 'error', message: err.message, code: 500 })
+            return reject({ status: 'error', message: err, code: 500 })
         });
 
 
