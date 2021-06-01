@@ -3,4 +3,4 @@ build:
   docker:
     web: Dockerfile
 run:
-  web: pm2-runtime process.yml
+  web: pm2-runtime ecosystem.config.js
