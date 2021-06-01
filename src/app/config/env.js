@@ -1,6 +1,8 @@
 const dotenv = require('dotenv');
-dotenv.config();
-env = {}
+let path = require("path");
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
+
+let env = {}
 if (process.env.NODE_ENV == "test") {
     env = {
     };
