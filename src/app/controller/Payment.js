@@ -99,19 +99,18 @@ exports.hook = async (req) => {
 
 
             Record.find({ campaign: campaignID }).sort([['createdAt', -1]]).limit(1).then((record) => {
-
+                record = record[0];
                 let contributions = {
                     amount: data.amount / 100,
                     date: new Date(),
-                    total_before: record[0].total,
-                    total_after: record[0].total + (data.amount / 100)
+                    total_before: record.total,
+                    total_after: record.total + (data.amount / 100)
                 }
                 if (user !== "null") {
                     contributions.user = user;
                 }
-                console.log("record => ", record)
                 console.log(contributions)
-                Record.findByIdAndUpdate(record._id, {
+                Record.findByIdAndUpdate(record.id, {
                     $push: {
                         contributions
                     },
@@ -119,12 +118,11 @@ exports.hook = async (req) => {
                         total: contributions.total_after
                     }
                 }, { new: true }).then(async (new_record) => {
-                    console.log("new_record => ", new_record)
 
                     if (user !== "null") {
                         contributions.record = new_record.id;
                         contributions.campaign = new_record.campaign;
-                        let u = await User.findByIdAndUpdate(id, {
+                        let u = await User.findByIdAndUpdate(user, {
                             $push: {
                                 contributions
                             },
@@ -132,7 +130,6 @@ exports.hook = async (req) => {
                                 total: contributions.total_after
                             }
                         }, { new: true });
-                        console.log("UUU ", u)
 
                     }
                     resolve({ status: "Success" });
