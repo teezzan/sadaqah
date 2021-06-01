@@ -34,7 +34,11 @@ exports.generatePaymentLink = async (ctx, payload) => {
 
             if (ctx.user) {
                 let user = await User.findById(ctx.user.id);
-                ps_payload.email = user.email;
+                if (user.email) {
+                    ps_payload.email = user.email;
+                } else {
+                    ps_payload.email = "*************@gmail.com";
+                }
                 ps_payload.reference = `${campaign.id}==${ctx.user.id}==${Date.now()}`;
             } else {
                 ps_payload.email = "*************@gmail.com";
