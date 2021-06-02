@@ -58,7 +58,7 @@ module.exports = {
         paymentCreation: Joi.object().keys({
             campaign: Joi.string().min(1).required(),
             amount: Joi.number().min(1).required(),
+            type: Joi.number().min(0).required()
         })
-
     }
 }
