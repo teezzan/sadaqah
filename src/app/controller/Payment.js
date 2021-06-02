@@ -5,7 +5,7 @@ let Record = require("../model/Record");
 let schemas = require('../model/schema');
 let crypto = require('crypto');
 let env = require("../config/env")
-
+let paymentType = ["single", "weekly", "monthly"];
 
 exports.generatePaymentLink = async (ctx, payload) => {
 
@@ -31,7 +31,10 @@ exports.generatePaymentLink = async (ctx, payload) => {
                 amount: payload.amount * 100,
                 currency: "NGN",
             };
+            let metadata = {
+                campaign: campaign.id,
 
+            }
             if (ctx.user) {
                 let user = await User.findById(ctx.user.id);
                 if (user.email) {
@@ -39,13 +42,17 @@ exports.generatePaymentLink = async (ctx, payload) => {
                 } else {
                     ps_payload.email = "*************@gmail.com";
                 }
-                ps_payload.reference = `${campaign.id}==${ctx.user.id}==${Date.now()}`;
+                metadata.user = ctx.user.id;
+                metadata.paymentType = paymentType[payload.type];
+                // ps_payload.reference = `${campaign.id}==${ctx.user.id}==${Date.now()}`;
             } else {
+                metadata.user = null;
                 ps_payload.email = "*************@gmail.com";
                 ps_payload.reference = `${campaign.id}==null==${Date.now()}`;
+                metadata.paymentType = paymentType[0];
             }
             console.log(ps_payload);
-
+            ps_payload.metadata = metadata;
             let res = await axios.post(
                 "https://api.paystack.co/transaction/initialize",
                 ps_payload,
@@ -97,6 +104,9 @@ exports.hook = async (req) => {
             let campaignID = reference.split("==")[0];
             let user = reference.split("==")[1];
 
+            let user = data.metadata.user;
+            let campaignID = data.metadata.campaign;
+
 
             Record.find({ campaign: campaignID }).sort([['createdAt', -1]]).limit(1).then((record) => {
                 record = record[0];
@@ -106,7 +116,7 @@ exports.hook = async (req) => {
                     total_before: record.total,
                     total_after: record.total + (data.amount / 100)
                 }
-                if (user !== "null") {
+                if (user !== null) {
                     contributions.user = user;
                 }
                 console.log(contributions)
@@ -119,7 +129,7 @@ exports.hook = async (req) => {
                     }
                 }, { new: true }).then(async (new_record) => {
 
-                    if (user !== "null") {
+                    if (user !== null) {
                         contributions.record = new_record.id;
                         contributions.campaign = new_record.campaign;
                         let u = await User.findByIdAndUpdate(user, {
@@ -142,7 +152,6 @@ exports.hook = async (req) => {
                 return reject({ status: 'error', message: err.message, code: 500 })
             });
         }
-
 
         return reject({ status: 200 });
 
