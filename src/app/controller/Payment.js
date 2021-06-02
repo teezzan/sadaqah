@@ -101,8 +101,8 @@ exports.hook = async (req) => {
                 resolve({ status: 'error', message: "Nice Try", code: 401 })
 
             let reference = data.reference;
-            let campaignID = reference.split("==")[0];
-            let user = reference.split("==")[1];
+            // let campaignID = reference.split("==")[0];
+            // let user = reference.split("==")[1];
 
             let user = data.metadata.user;
             let campaignID = data.metadata.campaign;
