@@ -21,10 +21,14 @@ module.exports = function (app) {
         callbackURL: `${env.SERVER}/auth/google/callback`
     },
         function (accessToken, refreshToken, profile, done) {
+            console.log(profile)
             let payload = {
                 googleId: profile.id,
                 avatar: profile.photos[0].value,
-                name: profile.name.givenName
+                name: profile.displayName,
+            }
+            if (profile.emails.length !== 0) {
+                payload.email = profile.emails[0].value
             }
             UserController.registerOrLoginWithGoogle(payload).then((response) => {
                 return done(null, response);
@@ -35,7 +39,7 @@ module.exports = function (app) {
     ));
 
     app.get('/auth/google',
-        passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
+        passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login', "email", "profile"] }));
 
     app.get('/auth/google/callback',
         passport.authenticate('google', { failureRedirect: '/authfail' }),

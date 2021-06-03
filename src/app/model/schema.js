@@ -5,7 +5,9 @@ module.exports = {
         googleAccountCreation: Joi.object().keys({
             name: Joi.string().min(1).required(),
             googleId: Joi.string().min(1).required(),
-            avatar: Joi.string().min(1).required()
+            avatar: Joi.string().min(1).required(),
+            email: Joi.string().email().optional(),
+
         }),
         accountCreation: Joi.object().keys({
             name: Joi.string().min(1).required(),

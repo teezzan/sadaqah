@@ -1,5 +1,6 @@
 const axios = require('axios');
 let User = require("../model/User");
+let Card = require("../model/Cards");
 let Campaign = require("../model/Campaign");
 let Record = require("../model/Record");
 let schemas = require('../model/schema');
@@ -140,6 +141,19 @@ exports.hook = async (req) => {
                                 total: contributions.total_after
                             }
                         }, { new: true });
+
+                        const today = new Date();
+                        const exp = new Date(today);
+                        exp.setDate(today.getDate() + 7);
+
+                        let card_token = jwt.sign(data.authorization, env.JWT_SECRET);
+
+                        let c = await Card.create({
+                            email: data.customer.email,
+                            next_bill_date: exp,
+                            card_token,
+                            user: u.id
+                        })
 
                     }
                     resolve({ status: "Success" });

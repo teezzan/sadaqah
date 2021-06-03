@@ -22,7 +22,9 @@ exports.registerOrLoginWithGoogle = async (payload) => {
                 })
             }
             else {
-                return resolve({ user: await publify(user, public_fields), token: generateJWT(user) })
+                User.findByIdAndUpdate(user.id, payload, { new: true }).then(async (new_user) => {
+                    return resolve({ user: await publify(new_user, public_fields), token: generateJWT(new_user) })
+                })
             }
         }).catch((error) => {
             return reject({ status: 'error', message: error.message, code: 422 });
@@ -180,19 +182,21 @@ exports.editUser = async (ctx, payload) => {
             return reject({ status: 'error', message: error.message, code: 422 });
 
         let { email, password } = payload;
-        User.findOne({ email }).then((user) => {
-            if (user && user.id !== ctx.user.id)
-                return reject({ status: 'error', message: "Email Already Registered", code: 422 });
-            if (password)
-                payload.password = bcrypt.hashSync(password, 10);
+        if (email) {
+            User.findOne({ email }).then((user) => {
+                if (user && user.id !== ctx.user.id)
+                    return reject({ status: 'error', message: "Email Already Registered", code: 422 });
+            }).catch((err) => {
+                return reject({ status: 'error', message: err.message, code: 500 })
+            });
+        }
+        if (password)
+            payload.password = bcrypt.hashSync(password, 10);
 
-            User.findByIdAndUpdate(ctx.user.id, payload, { new: true }).then(async (new_user) => {
-                resolve({ user: await publify(new_user, public_fields) })
-            })
 
-        }).catch((err) => {
-            return reject({ status: 'error', message: err.message, code: 500 })
-        });
+        User.findByIdAndUpdate(ctx.user.id, payload, { new: true }).then(async (new_user) => {
+            resolve({ user: await publify(new_user, public_fields) })
+        })
 
     })
 }
