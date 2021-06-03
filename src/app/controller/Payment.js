@@ -5,7 +5,8 @@ let Campaign = require("../model/Campaign");
 let Record = require("../model/Record");
 let schemas = require('../model/schema');
 let crypto = require('crypto');
-let env = require("../config/env")
+let env = require("../config/env");
+const { campaign } = require('../model/schema');
 let paymentType = ["single", "weekly", "monthly"];
 
 exports.generatePaymentLink = async (ctx, payload) => {
@@ -34,6 +35,7 @@ exports.generatePaymentLink = async (ctx, payload) => {
             };
             let metadata = {
                 campaign: campaign.id,
+                campaign_title: campaign.title
 
             }
             if (ctx.user) {
@@ -107,7 +109,7 @@ exports.hook = async (req) => {
 
             let user = data.metadata.user;
             let campaignID = data.metadata.campaign;
-
+            let campaign_title = data.metadata.campaign_title;
 
             Record.find({ campaign: campaignID }).sort([['createdAt', -1]]).limit(1).then((record) => {
                 record = record[0];
@@ -146,14 +148,18 @@ exports.hook = async (req) => {
                         const exp = new Date(today);
                         exp.setDate(today.getDate() + 7);
 
-                        let card_token = jwt.sign(data.authorization, env.JWT_SECRET);
+                        let card_token = jwt.sign(data.authorization, env.CARD_JWT_SECRET);
+                        if (metadata.paymentType !== "single") {
+                            let c = await Card.create({
+                                email: data.customer.email,
+                                next_bill_date: exp,
+                                card_token,
+                                user: u.id,
+                                campaign_title,
+                                payment_type: metadata.paymentType
+                            })
+                        }
 
-                        let c = await Card.create({
-                            email: data.customer.email,
-                            next_bill_date: exp,
-                            card_token,
-                            user: u.id
-                        })
 
                     }
                     resolve({ status: "Success" });

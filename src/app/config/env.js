@@ -12,6 +12,7 @@ else if (process.env.NODE_ENV == "development") {
         GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
         JWT_SECRET: process.env.JWT_SECRET || "jwt-test-secret",
+        CARD_JWT_SECRET: process.env.CARD_JWT_SECRET || "jwt-CARD-secret",
         PASSWORD_RESET_JWT_SECRET: process.env.PASSWORD_RESET_JWT_SECRET || "jwt-PASSWORD-secret",
         MONGO_URL: process.env.MONGO_URI,
         server: process.env.SERVER || "localhost:8010",

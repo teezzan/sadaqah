@@ -2,8 +2,9 @@ const Joi = require('joi');
 let User = require("../model/User");
 let bcrypt = require('bcryptjs');
 let schemas = require('../model/schema');
-let { publify, generateJWT, generateResetJWT, resolveResetToken, resolveToken, composePassMail } = require("../utility/utils");
-let public_fields = ["id", "name", "email", "avatar", "contributions"];
+let { publify, generateJWT, generateResetJWT, resolveResetToken, resolveCardToken, composePassMail } = require("../utility/utils");
+let public_fields = ["id", "name", "email", "avatar", "contributions", "subscriptions"];
+let Card = require("../model/Cards");
 
 
 
@@ -208,6 +209,25 @@ exports.me = async (ctx) => {
 
             if (!user)
                 return reject({ status: 'error', message: "Not Found", code: 404 });
+            Card.find({ user: user.id }).then((cards) => {
+                let dec_cards = [];
+                if (cards.length != 0) {
+
+                    dec_cards = cards.map(async (card) => {
+                        try {
+
+                            let authorization = await resolveToken({ token: card.card_token });
+                            card.details = await publify(authorization, ["card_type", "bank", "brand", "last4"]);
+                            return await publify(card, ["next_bill_date", "campaign_title", "details", "payment_type"]);
+                        }
+                        catch (err) {
+                            return null;
+                        }
+
+                    });
+                }
+                user.subscription = dec_cards;
+            })
             resolve({ user: await publify(user, public_fields) })
         }).catch((err) => {
             return reject({ status: 'error', message: err.message, code: 500 })

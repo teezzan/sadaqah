@@ -25,7 +25,6 @@ exports.generateResetJWT = (user) => {
 };
 
 exports.resolveToken = async ({ token }) => {
-    console.log(token)
     try {
         const decoded = await new Promise((resolve, reject) => {
             jwt.verify(token, env.JWT_SECRET, (err, decoded) => {
@@ -47,6 +46,23 @@ exports.resolveResetToken = async ({ token }) => {
     try {
         const decoded = await new Promise((resolve, reject) => {
             jwt.verify(token, env.PASSWORD_RESET_JWT_SECRET, (err, decoded) => {
+                if (err)
+                    return reject(err);
+                resolve(decoded);
+            });
+        });
+        return decoded;
+    }
+    catch (err) {
+        return null
+    }
+
+}
+
+exports.resolveCardToken = async ({ token }) => {
+    try {
+        const decoded = await new Promise((resolve, reject) => {
+            jwt.verify(token, env.CARD_JWT_SECRET, (err, decoded) => {
                 if (err)
                     return reject(err);
                 resolve(decoded);

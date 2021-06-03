@@ -21,7 +21,6 @@ module.exports = function (app) {
         callbackURL: `${env.SERVER}/auth/google/callback`
     },
         function (accessToken, refreshToken, profile, done) {
-            console.log(profile)
             let payload = {
                 googleId: profile.id,
                 avatar: profile.photos[0].value,
