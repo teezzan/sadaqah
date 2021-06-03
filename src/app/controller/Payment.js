@@ -6,6 +6,7 @@ let Record = require("../model/Record");
 let schemas = require('../model/schema');
 let crypto = require('crypto');
 let env = require("../config/env");
+let jwt = require('jsonwebtoken');
 const { campaign } = require('../model/schema');
 let paymentType = ["single", "weekly", "monthly"];
 
