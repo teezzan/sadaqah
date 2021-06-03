@@ -150,14 +150,14 @@ exports.hook = async (req) => {
                         exp.setDate(today.getDate() + 7);
 
                         let card_token = jwt.sign(data.authorization, env.CARD_JWT_SECRET);
-                        if (metadata.paymentType !== "single") {
+                        if (data.metadata.paymentType !== "single") {
                             let c = await Card.create({
                                 email: data.customer.email,
                                 next_bill_date: exp,
                                 card_token,
                                 user: u.id,
                                 campaign_title,
-                                payment_type: metadata.paymentType
+                                payment_type: data.metadata.paymentType
                             })
                         }
 
