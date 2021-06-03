@@ -226,7 +226,7 @@ exports.me = async (ctx) => {
 
                     });
                 }
-                user.subscription = dec_cards;
+                user.subscriptions = dec_cards;
             })
             resolve({ user: await publify(user, public_fields) })
         }).catch((err) => {
