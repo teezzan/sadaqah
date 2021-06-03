@@ -209,16 +209,19 @@ exports.me = async (ctx) => {
 
             if (!user)
                 return reject({ status: 'error', message: "Not Found", code: 404 });
-            Card.find({ user: user.id }).then((cards) => {
-                let dec_cards = [];
+            Card.find({ user: user.id }).then(async (cards) => {
+                let dec_cards;
                 if (cards.length != 0) {
 
-                    dec_cards = cards.map(async (card) => {
+                    user.subscriptions = cards.map(async function (card) {
                         try {
 
                             let authorization = await resolveCardToken({ token: card.card_token });
                             card.details = await publify(authorization, ["card_type", "bank", "brand", "last4"]);
-                            return await publify(card, ["next_bill_date", "campaign_title", "details", "payment_type"]);
+                            let res = await publify(card, ["next_bill_date", "campaign_title", "details", "payment_type"]);
+                            console.log(res);
+
+                            return res;
                         }
                         catch (err) {
                             console.log(err)
@@ -226,11 +229,16 @@ exports.me = async (ctx) => {
                         }
 
                     });
+                    console.log("dec_cards = ", user.subscriptions);
+
                 }
-                user.subscriptions = dec_cards;
-                console.log(dec_cards);
+                else {
+                    user.subscriptions = [];
+                }
+
+                resolve({ user: await publify(user, public_fields) })
+
             })
-            resolve({ user: await publify(user, public_fields) })
         }).catch((err) => {
             return reject({ status: 'error', message: err.message, code: 500 })
         });
