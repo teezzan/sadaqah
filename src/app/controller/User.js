@@ -216,17 +216,19 @@ exports.me = async (ctx) => {
                     dec_cards = cards.map(async (card) => {
                         try {
 
-                            let authorization = await resolveToken({ token: card.card_token });
+                            let authorization = await resolveCardToken({ token: card.card_token });
                             card.details = await publify(authorization, ["card_type", "bank", "brand", "last4"]);
                             return await publify(card, ["next_bill_date", "campaign_title", "details", "payment_type"]);
                         }
                         catch (err) {
+                            console.log(err)
                             return null;
                         }
 
                     });
                 }
                 user.subscriptions = dec_cards;
+                console.log(dec_cards);
             })
             resolve({ user: await publify(user, public_fields) })
         }).catch((err) => {
