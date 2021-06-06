@@ -137,7 +137,7 @@ exports.getLatestRecord = async (campaign) => {
     })
 }
 
-exports.createNewRecord = async (ctx, payload) => {
+exports.createNewRecord = async (payload) => {
 
     return new Promise(async (resolve, reject) => {
         const { error } = schemas.record.recordCreation.validate(payload);
@@ -161,5 +161,36 @@ exports.createNewRecord = async (ctx, payload) => {
     })
 }
 
+exports.getDueRecords = async () => {
+
+    return new Promise(async (resolve, reject) => {
+
+        Record.find({
+            deadline: { $lte: new Date() }
+        }).then((dueRecords) => {
+            return resolve(dueRecords);
+        }).then((due) => {
+            if (due.length == 0)
+                return resolve(true);
+            let toCreate = [];
+            due.forEach(records => {
+                Campaign.findById(records.id).then((campaign) => {
+                    if (campaign.recurring) {
+                        toCreate.push({
+                            campaign: campaign.id,
+                            deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * duration),
+                            createdAt: new Date.now()
+                        });
+                    }
+
+                })
+            });
+        }).catch((err) => {
+            return reject({ status: 'error', message: err.message, code: 500 });
+        });
+
+
+    })
+}
 
 
