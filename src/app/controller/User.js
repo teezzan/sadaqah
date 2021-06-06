@@ -19,12 +19,12 @@ exports.registerOrLoginWithGoogle = async (payload) => {
         User.findOne({ googleId }).then(async (user) => {
             if (!user) {
                 User.create(payload).then(async (new_user) => {
-                    return resolve({ user: await publify(new_user, public_fields), token: generateJWT(new_user) })
+                    return resolve({ user: await publify(new_user, ["id", "name", "email", "avatar"]), token: generateJWT(new_user) })
                 })
             }
             else {
                 User.findByIdAndUpdate(user.id, payload, { new: true }).then(async (new_user) => {
-                    return resolve({ user: await publify(new_user, public_fields), token: generateJWT(new_user) })
+                    return resolve({ user: await publify(new_user, ["id", "name", "email", "avatar"]), token: generateJWT(new_user) })
                 })
             }
         }).catch((error) => {
@@ -69,14 +69,17 @@ exports.login = async (payload) => {
 
         let { email, password } = payload;
         User.findOne({ email }).then(async (user) => {
+            console.log(email)
             if (!user)
                 return reject({ status: 'error', message: "User Does not Exist", code: 401 });
-
+            else if (user.password == undefined) {
+                return reject({ status: 'error', message: "Please Set your password", code: 422 })
+            }
             else {
                 const pass_auth = await bcrypt.compare(password, user.password);
                 if (!pass_auth)
                     return reject({ status: 'error', message: "Wrong Password", code: 401 });
-                return resolve({ user: await publify(user, public_fields), token: generateJWT(user) });
+                return resolve({ user: await publify(user, ["id", "name", "email", "avatar"]), token: generateJWT(user) });
             }
         }).catch((err) => {
             return reject({ status: 'error', message: err.message, code: 500 })
@@ -209,34 +212,44 @@ exports.me = async (ctx) => {
 
             if (!user)
                 return reject({ status: 'error', message: "Not Found", code: 404 });
+
             Card.find({ user: user.id }).then(async (cards) => {
                 let dec_cards;
                 if (cards.length != 0) {
 
-                    user.subscriptions = cards.map(async function (card) {
-                        try {
 
-                            let authorization = await resolveCardToken({ token: card.card_token });
-                            card.details = await publify(authorization, ["card_type", "bank", "brand", "last4"]);
-                            let res = await publify(card, ["next_bill_date", "campaign_title", "details", "payment_type"]);
-                            console.log(res);
+                    const getSubscriptionData = async () => {
+                        return Promise.all(
+                            cards.map(async (card) => {
+                                try {
+                                    let authorization = await resolveCardToken({ token: card.card_token });
+                                    card.details = await publify(authorization, ["card_type", "bank", "brand", "last4"]);
+                                    let res = await publify(card, ["next_bill_date", "campaign_title", "details", "payment_type"]);
+                                    console.log(res);
 
-                            return res;
-                        }
-                        catch (err) {
-                            console.log(err)
-                            return null;
-                        }
+                                    return res;
+                                }
+                                catch (err) {
+                                    console.log(err)
+                                    return null;
+                                }
 
-                    });
-                    console.log("dec_cards = ", user.subscriptions);
+                            })
+                        )
+                    }
+
+                    getSubscriptionData().then(async (subscriptions) => {
+                        user.subscriptions = subscriptions;
+                        resolve({ user: await publify(user, public_fields) })
+
+                    })
 
                 }
                 else {
                     user.subscriptions = [];
+                    resolve({ user: await publify(user, public_fields) })
                 }
 
-                resolve({ user: await publify(user, public_fields) })
 
             })
         }).catch((err) => {
