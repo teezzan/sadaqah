@@ -164,11 +164,11 @@ exports.createNewRecord = async (payload) => {
 exports.getDueRecords = async () => {
 
     return new Promise(async (resolve, reject) => {
-
+        console.log("here")
         Record.find({
             deadline: { $lte: new Date() }
         }).then((dueRecords) => {
-            return resolve(dueRecords);
+            return dueRecords;
         }).then((due) => {
             if (due.length == 0)
                 return resolve(true);
@@ -178,13 +178,20 @@ exports.getDueRecords = async () => {
                     if (campaign.recurring) {
                         toCreate.push({
                             campaign: campaign.id,
-                            deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * duration),
+                            deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * campaign.duration),
                             createdAt: new Date.now()
                         });
                     }
 
                 })
             });
+            console.log(toCreate);
+            return [toCreate, due];
+        }).then(async (toCreateArray) => {
+            Record.collection.insert(toCreateArray[0]).then(() => {
+                resolve(due);
+            })
+
         }).catch((err) => {
             return reject({ status: 'error', message: err.message, code: 500 });
         });

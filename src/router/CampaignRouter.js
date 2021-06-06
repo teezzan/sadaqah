@@ -54,5 +54,12 @@ router.get("/pay/:id", (req, res) => {
         res.status(err.code).json(err);
     })
 })
+router.get("/init/init", (req, res) => {
+    CampaignController.getDueRecords().then((response) => {
+        res.status(200).json(response);
+    }).catch(err => {
+        res.status(err.code).json(err);
+    })
+})
 
 module.exports = router;
