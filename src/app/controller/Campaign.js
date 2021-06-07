@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const mongoose = require("mongoose");
 let User = require("../model/User");
 let Campaign = require("../model/Campaign");
 let Record = require("../model/Record");
@@ -114,7 +115,7 @@ exports.editCampaign = async (ctx, payload) => {
 }
 
 exports.getAllRecords = async (campaign) => {
-
+    console.log(campaign)
     return new Promise(async (resolve, reject) => {
         Record.find({ campaign }).sort([['createdAt', -1]]).then((records) => {
             return resolve({ records })
@@ -150,7 +151,7 @@ exports.createNewRecord = async (payload) => {
         Record.create({
             campaign,
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * duration),
-            createdAt: new Date.now()
+            createdAt: new Date()
         }).then(() => {
             return resolve({ status: "Success" });
         }).catch((err) => {
@@ -164,34 +165,38 @@ exports.createNewRecord = async (payload) => {
 exports.getDueRecords = async () => {
 
     return new Promise(async (resolve, reject) => {
-        console.log("here")
         Record.find({
-            deadline: { $lte: new Date() }
+            deadline: { $lte: new Date() },
+            createdAt: { $lte: new Date(Date.now() - 1000 * 60 * 60 * 12), }
         }).then((dueRecords) => {
             return dueRecords;
         }).then((due) => {
             if (due.length == 0)
                 return resolve(true);
             let toCreate = [];
-            due.forEach(records => {
-                Campaign.findById(records.id).then((campaign) => {
+            let idArray = due.map(record => record.campaign);
+            Campaign.find({ _id: { $in: idArray } }).then((campaigns) => {
+                console.log(campaigns)
+                for (const campaign of campaigns) {
+
                     if (campaign.recurring) {
                         toCreate.push({
-                            campaign: campaign.id,
+                            campaign: mongoose.Types.ObjectId(campaign.id),
                             deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * campaign.duration),
-                            createdAt: new Date.now()
+                            createdAt: new Date()
                         });
                     }
 
-                })
-            });
-            console.log(toCreate);
-            return [toCreate, due];
-        }).then(async (toCreateArray) => {
-            Record.collection.insert(toCreateArray[0]).then(() => {
-                resolve(due);
-            })
 
+                }
+                if (toCreate.length == 0)
+                    return resolve(due)
+                Record.collection.insertMany(toCreate).then((result) => {
+                    console.log(result)
+                    resolve(due);
+                })
+
+            })
         }).catch((err) => {
             return reject({ status: 'error', message: err.message, code: 500 });
         });

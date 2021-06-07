@@ -47,8 +47,8 @@ router.post("/:id", Authorize, (req, res) => {
         res.status(err.code).json(err);
     })
 })
-router.get("/pay/:id", (req, res) => {
-    CampaignController.getAllCampaigns().then((response) => {
+router.get("/records/:campaign", (req, res) => {
+    CampaignController.getAllRecords(req.params.campaign).then((response) => {
         res.status(200).json(response);
     }).catch(err => {
         res.status(err.code).json(err);
