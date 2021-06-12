@@ -78,5 +78,16 @@ router.get("/authfail", (req, res) => {
     res.status(400).json({ message: "Access Denied" });
 })
 
+router.post("/add_account", Authorize, (req, res) => {
+
+    UserController.addAccountNumber(req.ctx, req.body).then((response) => {
+        res.status(200).json(response);
+    }).catch(err => {
+        res.status(err.code).json(err);
+    })
+});
+
+
+
 
 module.exports = router;

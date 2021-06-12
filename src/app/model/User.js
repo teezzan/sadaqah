@@ -9,6 +9,7 @@ const UserSchema = Schema({
     password: { type: String, required: false },
     bank_code: { type: Number, required: false },
     account_number: { type: Number, required: false },
+    recipient_code: { type: String, required: false },
     contributions: [
         {
             amount: { type: Number, default: 0 },

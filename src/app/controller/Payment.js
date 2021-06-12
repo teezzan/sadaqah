@@ -9,6 +9,8 @@ let env = require("../config/env");
 let jwt = require('jsonwebtoken');
 const { campaign } = require('../model/schema');
 let paymentType = ["single", "weekly", "monthly"];
+let { publify } = require("../utility/utils");
+
 
 exports.generatePaymentLink = async (ctx, payload) => {
 
@@ -89,6 +91,58 @@ exports.generatePaymentLink = async (ctx, payload) => {
     })
 }
 
+exports.getBankList = async () => {
+    return new Promise(async (resolve, reject) => {
+        axios.get(
+            `https://api.paystack.co/bank`,
+            {
+                headers: {
+                    authorization: `Bearer ${env.paystack_private_key}`,
+                    "Content-Type":
+                        "application/json",
+                },
+            }
+        ).then((resp) => {
+            let filter_list = async () => {
+                return Promise.all(
+                    resp.data.data.map(async (x) => {
+                        return await publify(x, ['name', 'code', 'country', 'currency', 'active']);
+                    }))
+            }
+            filter_list().then(async (data) => {
+
+                resolve(data);
+            })
+        }).catch(err => {
+            return reject({ status: 'error', message: err.message, code: 500 });
+        })
+
+
+
+    })
+}
+exports.getAccountDetails = async (payload) => {
+    return new Promise(async (resolve, reject) => {
+        const { error } = schemas.user.accountAdding.validate(payload);
+        if (error !== undefined)
+            return reject({ status: 'error', message: error.message, code: 422 });
+        axios.get(
+            `https://api.paystack.co/bank/resolve?account_number=${payload.account_number}&bank_code=${payload.bank_code}`,
+            {
+                headers: {
+                    authorization: `Bearer ${env.paystack_private_key}`,
+                    "Content-Type":
+                        "application/json",
+                },
+            }
+        ).then((resp) => {
+            resolve(resp.data.data);
+        }).catch((err) => {
+            return reject({ status: 'error', message: err.message, code: 500 });
+        })
+
+    })
+}
 exports.hook = async (req) => {
     return new Promise(async (resolve, reject) => {
         if (req.headers["x-paystack-signature"]) {

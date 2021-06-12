@@ -1,10 +1,12 @@
 const Joi = require('joi');
 let User = require("../model/User");
+let axios = require('axios');
 let bcrypt = require('bcryptjs');
 let schemas = require('../model/schema');
 let { publify, generateJWT, generateResetJWT, resolveResetToken, resolveCardToken, composePassMail } = require("../utility/utils");
 let public_fields = ["id", "name", "email", "avatar", "contributions", "subscriptions"];
 let Card = require("../model/Cards");
+let env = require('../config/env')
 
 
 
@@ -258,3 +260,30 @@ exports.me = async (ctx) => {
 
     })
 }
+
+
+exports.addAccountNumber = async (ctx, payload) => {
+    return new Promise(async (resolve, reject) => {
+        const { error } = schemas.user.accountAdding.validate(payload);
+        if (error !== undefined)
+            return reject({ status: 'error', message: error.message, code: 422 });
+        axios.get(
+            `https://api.paystack.co/bank/resolve?account_number=${payload.account_number}&bank_code=${payload.bank_code}`,
+            {
+                headers: {
+                    authorization: `Bearer ${env.paystack_private_key}`,
+                    "Content-Type":
+                        "application/json",
+                },
+            }
+        ).then((resp) => {
+
+            console.log(resp)
+            resolve(resp.data);
+        })
+
+
+
+    })
+}
+

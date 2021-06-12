@@ -27,6 +27,10 @@ module.exports = {
             email: Joi.string().email().optional(),
             password: Joi.string().regex(/^[\x20-\x7E]+$/).min(8).max(72).optional()
         }),
+        accountAdding: Joi.object().keys({
+            account_number: Joi.string().min(1).required(),
+            bank_code: Joi.string().min(1).required(),
+        }),
 
     },
     campaign: {

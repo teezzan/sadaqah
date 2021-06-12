@@ -186,8 +186,6 @@ exports.getDueRecords = async () => {
                             createdAt: new Date()
                         });
                     }
-
-
                 }
                 if (toCreate.length == 0)
                     return resolve(due)
@@ -205,4 +203,9 @@ exports.getDueRecords = async () => {
     })
 }
 
+let sendCashWithPaystack = (bank_code, account_number) => {
+    return new Promise((resolve, reject) => {
+
+    })
+}
 
