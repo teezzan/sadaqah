@@ -238,3 +238,8 @@ let sendAllCashWithPaystack = (transfers, records) => {
     })
 }
 
+let sendAllEmails = (records) => {
+    return new Promise((resolve, reject) => {
+
+    })
+}
