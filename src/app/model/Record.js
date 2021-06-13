@@ -5,7 +5,8 @@ const RecordSchema = Schema({
     campaign: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign' },
     remitted: {
         status: { type: Boolean, default: false },
-        Date: { type: Date }
+        date: { type: Date },
+        reference: { type: String, default: "" },
     },
     total: { type: Number, default: 0 },
     deadline: { type: Date, required: true },

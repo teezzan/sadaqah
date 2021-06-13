@@ -274,7 +274,8 @@ exports.addAccountNumber = async (ctx, payload) => {
                     name: String(ctx.user.id),
                     account_number: payload.account_number,
                     bank_code: payload.bank_code,
-                    currency: "NGN"
+                    currency: "NGN",
+                    test: "shitty"
                 }
                 console.log(ps_payload);
                 axios.post(

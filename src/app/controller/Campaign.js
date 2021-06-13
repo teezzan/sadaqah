@@ -203,9 +203,38 @@ exports.getDueRecords = async () => {
     })
 }
 
-let sendCashWithPaystack = (bank_code, account_number) => {
+let sendAllCashWithPaystack = (transfers, records) => {
     return new Promise((resolve, reject) => {
-
+        let ps_payload = {
+            currency: "NGN",
+            source: "balance",
+            transfers
+        };
+        axios.post(
+            "https://api.paystack.co/transfer/bulk",
+            ps_payload,
+            {
+                headers: {
+                    authorization: `Bearer ${env.paystack_private_key}`,
+                    "Content-Type":
+                        "application/json",
+                },
+            }
+        ).then(async ({ data }) => {
+            console.log(data);
+            Record.updateMany({ _id: { $in: records } }, {
+                $set: {
+                    remitted: {
+                        status: true,
+                        date: new Date()
+                    }
+                }
+            }).then((up) => {
+                resolve(up)
+            })
+        }).catch(err => {
+            reject(err)
+        })
     })
 }
 
