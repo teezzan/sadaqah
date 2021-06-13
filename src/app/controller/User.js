@@ -4,9 +4,11 @@ let axios = require('axios');
 let bcrypt = require('bcryptjs');
 let schemas = require('../model/schema');
 let { publify, generateJWT, generateResetJWT, resolveResetToken, resolveCardToken, composePassMail } = require("../utility/utils");
-let public_fields = ["id", "name", "email", "avatar", "contributions", "subscriptions"];
+let public_fields = ["id", "name", "email", "avatar", "contributions", "subscriptions", "account_number",
+    "bank_name", "account_name"];
 let Card = require("../model/Cards");
 let env = require('../config/env')
+let PaymentController = require('./Payment');
 
 
 
@@ -264,23 +266,44 @@ exports.me = async (ctx) => {
 
 exports.addAccountNumber = async (ctx, payload) => {
     return new Promise(async (resolve, reject) => {
-        const { error } = schemas.user.accountAdding.validate(payload);
-        if (error !== undefined)
-            return reject({ status: 'error', message: error.message, code: 422 });
-        axios.get(
-            `https://api.paystack.co/bank/resolve?account_number=${payload.account_number}&bank_code=${payload.bank_code}`,
-            {
-                headers: {
-                    authorization: `Bearer ${env.paystack_private_key}`,
-                    "Content-Type":
-                        "application/json",
-                },
-            }
-        ).then((resp) => {
+        PaymentController.getAccountDetails(payload)
+            .then(async (data) => {
 
-            console.log(resp)
-            resolve(resp.data);
-        })
+                const ps_payload = {
+                    type: "nuban",
+                    name: String(ctx.user.id),
+                    account_number: payload.account_number,
+                    bank_code: payload.bank_code,
+                    currency: "NGN"
+                }
+                console.log(ps_payload);
+                axios.post(
+                    "https://api.paystack.co/transferrecipient",
+                    ps_payload,
+                    {
+                        headers: {
+                            authorization: `Bearer ${env.paystack_private_key}`,
+                            "Content-Type":
+                                "application/json",
+                        },
+                    }
+                ).then((rs) => {
+                    let userdata = rs.data;
+                    User.findByIdAndUpdate(ctx.user.id, {
+                        account_number: userdata.data.details.account_number,
+                        account_name: userdata.data.details.account_name,
+                        bank_code: userdata.data.details.bank_code,
+                        bank_name: userdata.data.details.bank_name,
+                        recipient_code: userdata.data.recipient_code
+                    }, { new: true }).then(async (new_user) => {
+                        resolve({ user: await publify(new_user, public_fields) })
+                    })
+                }).catch((err) => {
+                    return reject({ status: 'error', message: err.message, code: 500 });
+                })
+            }).catch((err) => {
+                return reject({ status: 'error', message: err.message, code: 500 });
+            })
 
 
 

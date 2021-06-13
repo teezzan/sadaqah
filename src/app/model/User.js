@@ -7,8 +7,10 @@ const UserSchema = Schema({
     name: { type: String, required: false },
     email: { type: String, trim: true, required: false, unique: true, sparse: true },
     password: { type: String, required: false },
-    bank_code: { type: Number, required: false },
-    account_number: { type: Number, required: false },
+    account_number: { type: String, required: false },
+    bank_code: { type: String, required: false },
+    bank_name: { type: String, required: false },
+    account_name: { type: String, required: false },
     recipient_code: { type: String, required: false },
     contributions: [
         {

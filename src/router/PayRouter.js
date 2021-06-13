@@ -10,9 +10,10 @@ router.get("/get_account/:account_number/:bank_code", Authorize, (req, res) => {
     PaymentController.getAccountDetails({ account_number: req.params.account_number, bank_code: req.params.bank_code }).then((response) => {
         res.status(200).json(response);
     }).catch(err => {
-        res.status(err.code).json(err);
+        res.status(err.message).json(err);
     })
 });
+
 
 router.get("/:campaign/:amount/:type", (req, res) => {
     console.log("paying");
@@ -23,7 +24,7 @@ router.get("/:campaign/:amount/:type", (req, res) => {
     PaymentController.generatePaymentLink(req.ctx, { amount: Number(req.params.amount), campaign: req.params.campaign, type: Number(req.params.type) }).then((response) => {
         res.status(200).json(response);
     }).catch(err => {
-        res.status(err.code).json(err);
+        res.status(err.message).json(err);
     })
 })
 
@@ -33,7 +34,7 @@ router.post("/hook", (req, res) => {
     PaymentController.hook(req).then((response) => {
         res.status(200).json(response);
     }).catch(err => {
-        res.status(err.code).json(err);
+        res.status(err.message).json(err);
     })
 })
 
@@ -41,7 +42,7 @@ router.get("/get_bank_list", Authorize, (req, res) => {
     PaymentController.getBankList().then((response) => {
         res.status(200).json(response);
     }).catch(err => {
-        res.status(err.code).json(err);
+        res.status(err.message).json(err);
     })
 })
 
