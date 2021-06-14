@@ -203,6 +203,19 @@ exports.getDueRecords = async () => {
     })
 }
 
+
+let cronJob = () => {
+    return new Promise((resolve, reject) => {
+        this.getDueRecords().then(async (dueRecords) => {
+
+        }).catch(err => {
+
+            return reject({ status: 'error', message: err.message, code: 500 });
+        })
+    })
+}
+
+
 let sendAllCashWithPaystack = (transfers, records) => {
     return new Promise((resolve, reject) => {
         let ps_payload = {
@@ -233,7 +246,7 @@ let sendAllCashWithPaystack = (transfers, records) => {
                 resolve(up)
             })
         }).catch(err => {
-            reject(err)
+            return reject({ status: 'error', message: err.message, code: 500 })
         })
     })
 }
