@@ -172,36 +172,38 @@ exports.getDueRecords = async () => {
             return dueRecords;
         }).then((due) => {
             if (due.length == 0)
-                return resolve(true);
+                return { due: null, beneficiaryArray: null };
             let toCreate = [];
             let idArray = due.map(record => record.campaign);
-            let userArray = [];
-            Campaign.find({ _id: { $in: idArray } }).then((campaigns) => {
-                // console.log(campaigns)
-                for (const campaign of campaigns) {
-                    let tempUser = { creator: campaign.creator }
-                    let index = due.findIndex(x => x.campaign == campaign.id)
-                    tempUser.total = due[index].total;
-                    tempUser.record = due[index].id;
-                    console.log(tempUser)
-                    if (campaign.recurring) {
-                        toCreate.push({
-                            campaign: mongoose.Types.ObjectId(campaign.id),
-                            deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * campaign.duration),
-                            createdAt: new Date()
-                        });
+            let beneficiaryArray = [];
+            return new Promise(async (resolve, reject) => {
+                Campaign.find({ _id: { $in: idArray } }).then((campaigns) => {
+                    // console.log(campaigns)
+                    for (const campaign of campaigns) {
+                        let tempUser = { creator: campaign.creator }
+                        let index = due.findIndex(x => x.campaign == campaign.id)
+                        tempUser.total = due[index].total;
+                        tempUser.record = due[index].id;
+                        beneficiaryArray.push(tempUser);
+
+                        if (campaign.recurring) {
+                            toCreate.push({
+                                campaign: mongoose.Types.ObjectId(campaign.id),
+                                deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * campaign.duration),
+                                createdAt: new Date()
+                            });
+                        }
+
                     }
+                    if (toCreate.length == 0)
+                        return resolve({ due, beneficiaryArray })
+                    // Record.collection.insertMany(toCreate).then((result) => {
+                    // Record.collection.insertMany([]).then((result) => {
+                    //     // console.log(result)
+                    resolve({ due, beneficiaryArray });
+                    // })
 
-                }
-                if (toCreate.length == 0)
-                    return resolve(due)
-                // Record.collection.insertMany(toCreate).then((result) => {
-                // Record.collection.insertMany([]).then((result) => {
-                //     // console.log(result)
-                //     resolve(due);
-                // })
-                resolve(due);
-
+                })
             })
         }).catch((err) => {
             return reject({ status: 'error', message: err.message, code: 500 });
@@ -212,14 +214,30 @@ exports.getDueRecords = async () => {
 }
 
 
-let cronJob = () => {
+exports.cronJob = () => {
     return new Promise((resolve, reject) => {
-        this.getDueRecords().then(async (dueRecords) => {
-            let transferList = [];
-            // let transferList = [];
-            for (record in dueRecords) {
+        this.getDueRecords().then(async ({ due, beneficiaryArray }) => {
+            let transfers = [];
+            let usersArray = beneficiaryArray.map(beneficiary => String(beneficiary.creator));
+            let records = beneficiaryArray.map(beneficiary => String(beneficiary.record));
+            User.find({ _id: { $in: usersArray } }).then((users) => {
+                for (const user of users) {
 
-            }
+                    let index = beneficiaryArray.findIndex(x => x.creator == user.id);
+
+                    let tempBeneficiary = {
+                        amount: usersArray[index].total,
+                        reference: `ref_${usersArray[index].record}`,
+                        recipient: user.recipient_code
+                    }
+                    transfers.push(tempBeneficiary);
+                }
+                return { transfers, records };
+            })
+        }).then(async ({ transfers, records }) => {
+            console.log(transfers);
+            console.log(records)
+            resolve({ transfers, records })
         }).catch(err => {
 
             return reject({ status: 'error', message: err.message, code: 500 });
@@ -228,7 +246,7 @@ let cronJob = () => {
 }
 
 
-let sendAllCashWithPaystack = (transfers, records) => {
+let sendAllCashWithPaystack = ({ transfers, records }) => {
     return new Promise((resolve, reject) => {
         let ps_payload = {
             currency: "NGN",
