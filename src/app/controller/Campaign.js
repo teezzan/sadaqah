@@ -257,7 +257,6 @@ let sendAllCashWithPaystack = ({ transfers, records }) => {
             source: "balance",
             transfers
         };
-        console.log(ps_payload);
 
         axios.post(
             "https://api.paystack.co/transfer/bulk",
