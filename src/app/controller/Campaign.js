@@ -175,10 +175,15 @@ exports.getDueRecords = async () => {
                 return resolve(true);
             let toCreate = [];
             let idArray = due.map(record => record.campaign);
+            let userArray = [];
             Campaign.find({ _id: { $in: idArray } }).then((campaigns) => {
-                console.log(campaigns)
+                // console.log(campaigns)
                 for (const campaign of campaigns) {
-
+                    let tempUser = { creator: campaign.creator }
+                    let index = due.findIndex(x => x.campaign == campaign.id)
+                    tempUser.total = due[index].total;
+                    tempUser.record = due[index].id;
+                    console.log(tempUser)
                     if (campaign.recurring) {
                         toCreate.push({
                             campaign: mongoose.Types.ObjectId(campaign.id),
@@ -186,13 +191,16 @@ exports.getDueRecords = async () => {
                             createdAt: new Date()
                         });
                     }
+
                 }
                 if (toCreate.length == 0)
                     return resolve(due)
-                Record.collection.insertMany(toCreate).then((result) => {
-                    console.log(result)
-                    resolve(due);
-                })
+                // Record.collection.insertMany(toCreate).then((result) => {
+                // Record.collection.insertMany([]).then((result) => {
+                //     // console.log(result)
+                //     resolve(due);
+                // })
+                resolve(due);
 
             })
         }).catch((err) => {
@@ -207,7 +215,11 @@ exports.getDueRecords = async () => {
 let cronJob = () => {
     return new Promise((resolve, reject) => {
         this.getDueRecords().then(async (dueRecords) => {
+            let transferList = [];
+            // let transferList = [];
+            for (record in dueRecords) {
 
+            }
         }).catch(err => {
 
             return reject({ status: 'error', message: err.message, code: 500 });
