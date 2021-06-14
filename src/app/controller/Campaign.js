@@ -4,8 +4,10 @@ let User = require("../model/User");
 let Campaign = require("../model/Campaign");
 let Record = require("../model/Record");
 let schemas = require('../model/schema');
-let { publify, generateJWT } = require("../utility/utils");
+let { publify } = require("../utility/utils");
 let public_fields = ["id", "title", "description", "assets", "creator", "target", "duration", "recurring", "record"];
+let axios = require('axios');
+let env = require('../config/env');
 
 
 exports.create = async (ctx, payload) => {
@@ -230,9 +232,13 @@ exports.cronJob = () => {
                     }
                     transfers.push(tempBeneficiary);
                 }
-                // console.log(transfers);
-                resolve({ transfers, records })
-                // resolve(true)
+
+
+                sendAllCashWithPaystack({ transfers, records }).then((x) => {
+                    resolve({ x });
+                }).catch(err => {
+                    return reject({ status: 'error', message: err.message, code: 500 })
+                })
 
             })
 
@@ -251,6 +257,8 @@ let sendAllCashWithPaystack = ({ transfers, records }) => {
             source: "balance",
             transfers
         };
+        console.log(ps_payload);
+
         axios.post(
             "https://api.paystack.co/transfer/bulk",
             ps_payload,
@@ -261,18 +269,19 @@ let sendAllCashWithPaystack = ({ transfers, records }) => {
                         "application/json",
                 },
             }
-        ).then(async ({ data }) => {
+        ).then(async (data) => {
             console.log(data);
-            Record.updateMany({ _id: { $in: records } }, {
-                $set: {
-                    remitted: {
-                        status: true,
-                        date: new Date()
-                    }
-                }
-            }).then((up) => {
-                resolve(up)
-            })
+            resolve(data)
+            // Record.updateMany({ _id: { $in: records } }, {
+            //     $set: {
+            //         remitted: {
+            //             status: true,
+            //             date: new Date()
+            //         }
+            //     }
+            // }).then((up) => {
+            //     resolve(up)
+            // })
         }).catch(err => {
             return reject({ status: 'error', message: err.message, code: 500 })
         })
