@@ -1,6 +1,6 @@
 let express = require("express");
 let app = express();
-let UserRoute = require('./router/userRouter');
+let UserRoute = require('./router/UserRouter');
 let CampaignRoute = require('./router/CampaignRouter');
 let PayRoute = require('./router/PayRouter');
 let cors = require('cors');
