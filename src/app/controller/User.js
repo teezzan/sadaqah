@@ -50,14 +50,14 @@ exports.create = async (payload) => {
         let { email, password, name } = payload;
         User.findOne({ email }).then(async (user) => {
             if (!user) {
-                User.create({ email, password: bcrypt.hashSync(password, 10), name }).then(async (new_user) => {
+                User.create({ email, password: bcrypt.hashSync(password, 10), name, googleId: `${Math.random() * 100}+${name}` }).then(async (new_user) => {
                     return resolve({ user: await publify(new_user, public_fields), token: generateJWT(new_user) })
                 })
             }
             else {
                 reject({ status: 'error', message: "User Exists", code: 422 });
             }
-        }).catch((error) => {
+        }).catch((err) => {
             return reject({ status: 'error', message: err.message, code: 500 })
         });
     })
