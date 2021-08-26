@@ -143,8 +143,6 @@ describe('User Operations', () => {
         expect(response.user).toHaveProperty('avatar');
         expect(response.user).toHaveProperty('subscriptions');
 
-
-
     })
 
 }, 30000)
