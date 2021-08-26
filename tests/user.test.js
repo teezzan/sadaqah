@@ -2,6 +2,7 @@ let dotenv = require('dotenv');
 dotenv.config();
 const db = require('./db-handler')
 beforeAll(async () => await db.connect())
+afterEach(async () => await db.clearDatabase())
 afterAll(async () => await db.closeDatabase())
 
 let UserController = require("../src/app/controller/User");
@@ -21,33 +22,75 @@ describe('User Operations', () => {
     })
 
     it('Create User from Existing Email', async () => {
+
+
         let payload = {
             email: "teehazzan@email.com",
             password: "paswweo2300@#!",
             name: "Test User Tee"
         }
-        UserController.create(payload).then(response => {
-            expect(response).toBeUndefined();
-        }).catch(err => {
+
+        await UserController.create(payload)
+        try {
+            let resp = await UserController.create(payload)
+        }
+        catch (err) {
             expect(err.status).toBe('error');
             expect(err.message).toBe('User Exists');
             expect(err.code).toBe(422);
-        })
+        }
 
 
     })
 
     it('Login User', async () => {
+        let payload = {
+            email: "teehazzan@email.com",
+            password: "paswweo2300@#!",
+            name: "Test User Tee"
+        }
+        await UserController.create(payload);
 
         payload = {
             email: "teehazzan@email.com",
             password: "paswweo2300@#!"
         }
 
-        UserController.login(payload).then(response => {
-            expect(response).toBeDefined();
-            console.log(response);
-        })
+        let response = await UserController.login(payload)
+        expect(response.token).toBeDefined();
+        expect(response.user.email).toBe(payload.email);
+        expect(response.user.id).toBeDefined();
+        expect(response.token).toBeDefined();
+
+
+
+    })
+
+    it('Login User With Wrong PAssword', async () => {
+        let payload = {
+            email: "teehazzan@email.com",
+            password: "paswweo2300@#!",
+            name: "Test User Tee"
+        }
+        await UserController.create(payload);
+
+        try {
+
+            payload = {
+                email: "teehazzan@email.com",
+                password: "paswwe55151"
+            }
+
+            await UserController.login(payload)
+        }
+        catch (err) {
+            expect(err.status).toBe('error');
+            expect(err.message).toBe('Wrong Password');
+            expect(err.code).toBe(401);
+        }
+
+
+
     })
 
 }, 30000)
