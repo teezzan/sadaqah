@@ -2,19 +2,13 @@ let dotenv = require('dotenv');
 dotenv.config();
 const db = require('./db-handler')
 beforeAll(async () => await db.connect())
-// afterEach(async () => await db.clearDatabase())
 afterAll(async () => await db.closeDatabase())
 
-let UserController = require("../src/app/controller/User")
+let UserController = require("../src/app/controller/User");
 
-describe('Create User', () => {
-    it('Greetings', async () => {
-        let response = await UserController.greet()
-        expect(response.status).toBeDefined();
-        expect(response.status).toBe("Hello World!!!")
-    })
+describe('User Operations', () => {
 
-    it('Create User from email', async () => {
+    it('Create User from Email', async () => {
         let payload = {
             email: "teehazzan@email.com",
             password: "paswweo2300@#!",
@@ -24,25 +18,36 @@ describe('Create User', () => {
         expect(response.token).toBeDefined();
         expect(response.user.email).toBe(payload.email);
         expect(response.user.name).toBe(payload.name);
-
-
-
     })
 
-    it('Create User from Existing email ', async () => {
+    it('Create User from Existing Email', async () => {
         let payload = {
             email: "teehazzan@email.com",
             password: "paswweo2300@#!",
             name: "Test User Tee"
         }
-        UserController.create(payload).catch(err => {
+        UserController.create(payload).then(response => {
+            expect(response).toBeUndefined();
+        }).catch(err => {
             expect(err.status).toBe('error');
             expect(err.message).toBe('User Exists');
             expect(err.code).toBe(422);
-
         })
 
 
+    })
+
+    it('Login User', async () => {
+
+        payload = {
+            email: "teehazzan@email.com",
+            password: "paswweo2300@#!"
+        }
+
+        UserController.login(payload).then(response => {
+            expect(response).toBeDefined();
+            console.log(response);
+        })
     })
 
 }, 30000)

@@ -73,7 +73,6 @@ exports.login = async (payload) => {
 
         let { email, password } = payload;
         User.findOne({ email }).then(async (user) => {
-            console.log(email)
             if (!user)
                 return reject({ status: 'error', message: "User Does not Exist", code: 401 });
             else if (user.password == undefined) {
