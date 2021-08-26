@@ -23,7 +23,6 @@ describe('User Operations', () => {
 
     it('Create User from Existing Email', async () => {
 
-
         let payload = {
             email: "teehazzan@email.com",
             password: "paswweo2300@#!",
@@ -60,7 +59,6 @@ describe('User Operations', () => {
         expect(response.token).toBeDefined();
         expect(response.user.email).toBe(payload.email);
         expect(response.user.id).toBeDefined();
-        expect(response.token).toBeDefined();
 
 
 
@@ -88,6 +86,62 @@ describe('User Operations', () => {
             expect(err.message).toBe('Wrong Password');
             expect(err.code).toBe(401);
         }
+
+    })
+
+    it('Forget Password', async () => {
+        let payload = {
+            email: "teehazzan@email.com",
+            password: "paswweo2300@#!",
+            name: "Test User Tee"
+        }
+        await UserController.create(payload);
+
+
+        payload = {
+            email: "teehazzan@email.com"
+        }
+
+        let response = await UserController.forgetPassword(payload);
+        expect(response.msg).toBeDefined();
+
+    })
+
+    it('Forget Password For Wrong User', async () => {
+
+        payload = {
+            email: "teehazzan@email.com"
+        }
+        try {
+
+            let response = await UserController.forgetPassword(payload);
+        }
+        catch (err) {
+
+            expect(err.status).toBe('error');
+            expect(err.message).toBe('User Does not Exist');
+            expect(err.code).toBe(401);
+        }
+
+    })
+
+    it('Get User Details', async () => {
+        let payload = {
+            email: "teehazzan@email.com",
+            password: "paswweo2300@#!",
+            name: "Test User Tee"
+        }
+        let { user } = await UserController.create(payload);
+
+        let response = await UserController.me({ user });
+        expect(response.user.email).toBe(payload.email);
+        expect(response.user.id).toBe(user.id);
+        expect(response.user.account_number).toBeUndefined();
+        expect(response.user.bank_name).toBeUndefined();
+        expect(response.user.account_name).toBeUndefined();
+        expect(response.user).toHaveProperty('contributions');
+        expect(response.user).toHaveProperty('avatar');
+        expect(response.user).toHaveProperty('subscriptions');
 
 
 
