@@ -14,7 +14,7 @@ describe('Create User', () => {
         expect(response.status).toBe("Hello World!!!")
     })
 
-    it('Creates User from email', async () => {
+    it('Create User from email', async () => {
         let payload = {
             email: "teehazzan@email.com",
             password: "paswweo2300@#!",
@@ -25,10 +25,24 @@ describe('Create User', () => {
         expect(response.user.email).toBe(payload.email);
         expect(response.user.name).toBe(payload.name);
 
+
+
     })
 
-    it('Creates User from Google', async () => {
-        
+    it('Create User from Existing email ', async () => {
+        let payload = {
+            email: "teehazzan@email.com",
+            password: "paswweo2300@#!",
+            name: "Test User Tee"
+        }
+        UserController.create(payload).catch(err => {
+            expect(err.status).toBe('error');
+            expect(err.message).toBe('User Exists');
+            expect(err.code).toBe(422);
+
+        })
+
+
     })
 
 }, 30000)
